@@ -5,11 +5,15 @@ document.addEventListener('DOMContentLoaded', () => {
     cargarAulas('/aulas');
     cargarReservas();
 
-    // Eventos
+    // Eventos del Formulario de Reserva
     document.getElementById('form-reserva').addEventListener('submit', crearReserva);
+
+    // Eventos de los Filtros de Aulas
     document.getElementById('btn-todas-aulas').addEventListener('click', () => cargarAulas('/aulas'));
     document.getElementById('btn-aulas-ordenadores').addEventListener('click', () => cargarAulas('/aulas?ordenadores=true'));
     document.getElementById('btn-filtrar-capacidad').addEventListener('click', filtrarPorCapacidad);
+
+    // Evento de Reservas
     document.getElementById('btn-cargar-reservas').addEventListener('click', cargarReservas);
 });
 
@@ -18,13 +22,10 @@ function mostrarToast(mensaje, tipo = 'success') {
     const toast = document.getElementById('toast');
     toast.textContent = mensaje;
     toast.className = `toast show ${tipo}`;
-
-    setTimeout(() => {
-        toast.className = 'toast'; // Oculta el toast
-    }, 3500);
+    setTimeout(() => { toast.className = 'toast'; }, 3500);
 }
 
-// Cargas iniciales
+// Cargar opciones en los desplegables (Aulas, Profesores, Franjas)
 async function cargarDesplegables() {
     try {
         const [resAulas, resProfesores, resFranjas] = await Promise.all([
@@ -33,15 +34,17 @@ async function cargarDesplegables() {
             fetch(`${API_BASE_URL}/franjas-horarias`)
         ]);
 
+        if(!resAulas.ok || !resProfesores.ok || !resFranjas.ok) throw new Error();
+
         const aulas = await resAulas.json();
         const profesores = await resProfesores.json();
         const franjas = await resFranjas.json();
 
         rellenarSelect('select-aula', aulas, a => `${a.nombre} (Cap: ${a.capacidad})`);
         rellenarSelect('select-profesor', profesores, p => `${p.nombre} ${p.apellidos}`);
-        rellenarSelect('select-franja', franjas, f => `${f.descripcion} [${f.horaInicio} - ${f.horaFin}]`);
+        rellenarSelect('select-franja', franjas, f => `${f.descripcion || 'Franja'} [${f.horaInicio} - ${f.horaFin}]`);
     } catch (error) {
-        mostrarToast('Error conectando al servidor Backend', 'error');
+        mostrarToast('Error al conectar con el servidor. Comprueba que Spring Boot esté en ejecución.', 'error');
     }
 }
 
@@ -56,12 +59,11 @@ function rellenarSelect(idSelect, datos, formatoTexto) {
     });
 }
 
-// Lógica de Aulas
+// Cargar Aulas en la tabla
 async function cargarAulas(endpoint) {
     try {
         const response = await fetch(`${API_BASE_URL}${endpoint}`);
         const aulas = await response.json();
-
         const tbody = document.querySelector('#tabla-aulas tbody');
         tbody.innerHTML = '';
 
@@ -89,7 +91,7 @@ function filtrarPorCapacidad() {
     cargarAulas(`/aulas?capacidad=${capacidad}`);
 }
 
-// Lógica de Reservas
+// Crear Reserva
 async function crearReserva(event) {
     event.preventDefault();
 
@@ -116,56 +118,46 @@ async function crearReserva(event) {
             mostrarToast(errorMsg || 'No se pudo crear la reserva', 'error');
         }
     } catch (error) {
-        mostrarToast('Error de conexión', 'error');
+        mostrarToast('Error de conexión al crear reserva', 'error');
     }
 }
 
+// Cargar y Eliminar Reservas en la tabla
 async function cargarReservas() {
     try {
         const response = await fetch(`${API_BASE_URL}/reservas`);
         const reservas = await response.json();
-
         const tbody = document.querySelector('#tabla-reservas tbody');
         tbody.innerHTML = '';
 
         reservas.forEach(reserva => {
-            // Formatear la fecha para que se vea bonita (DD/MM/YYYY)
             const fechaFormateada = new Date(reserva.fechaReserva).toLocaleDateString('es-ES');
-
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td><strong>${fechaFormateada}</strong></td>
-                <td>${reserva.aula?.nombre || 'N/A'}</td>
-                <td>${reserva.profesor?.nombre || 'N/A'}</td>
-                <td><span class="badge">${reserva.franjaHoraria?.descripcion || 'N/A'}</span></td>
+                <td>${reserva.aula ? reserva.aula.nombre : 'N/A'}</td>
+                <td>${reserva.profesor ? `${reserva.profesor.nombre} ${reserva.profesor.apellidos}` : 'N/A'}</td>
+                <td><span class="badge">${reserva.franjaHoraria ? reserva.franjaHoraria.descripcion : 'N/A'}</span></td>
                 <td>
-                    <button class="btn-danger" onclick="eliminarReserva(${reserva.id})">
-                        🗑️ Borrar
-                    </button>
+                    <button class="btn-danger" onclick="eliminarReserva(${reserva.id})">🗑️ Borrar</button>
                 </td>
             `;
             tbody.appendChild(tr);
         });
     } catch (error) {
-        mostrarToast('Error al cargar las reservas', 'error');
+        mostrarToast('Error al cargar reservas', 'error');
     }
 }
 
 async function eliminarReserva(id) {
-    if (!confirm('¿Seguro que deseas eliminar esta reserva?')) return;
-
+    if (!confirm('¿Eliminar esta reserva?')) return;
     try {
-        const response = await fetch(`${API_BASE_URL}/reservas/${id}`, {
-            method: 'DELETE'
-        });
-
+        const response = await fetch(`${API_BASE_URL}/reservas/${id}`, { method: 'DELETE' });
         if (response.ok || response.status === 204) {
             mostrarToast('Reserva eliminada', 'success');
             cargarReservas();
-        } else {
-            mostrarToast('Error al eliminar', 'error');
         }
     } catch (error) {
-        mostrarToast('Error de conexión', 'error');
+        mostrarToast('Error al eliminar', 'error');
     }
 }
