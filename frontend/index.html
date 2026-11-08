@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduReserva | Gestión de Aulas</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<!-- Notificación flotante (Toast) -->
+<div id="toast" class="toast">Mensaje</div>
+
+<nav class="navbar">
+    <div class="logo">🏫 <span>EduReserva</span></div>
+    <p class="subtitle">Panel de Administración</p>
+</nav>
+
+<main class="container">
+    <div class="dashboard-grid">
+
+        <!-- Columna Izquierda: Formulario -->
+        <div class="columna-lateral">
+            <section class="card form-card">
+                <div class="card-header">
+                    <h2>📅 Nueva Reserva</h2>
+                    <p>Asigna un aula a un profesor</p>
+                </div>
+
+                <form id="form-reserva">
+                    <div class="form-group">
+                        <label for="select-aula">Aula</label>
+                        <select id="select-aula" required>
+                            <option value="">Cargando...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="select-profesor">Profesor</label>
+                        <select id="select-profesor" required>
+                            <option value="">Cargando...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="select-franja">Franja Horaria</label>
+                        <select id="select-franja" required>
+                            <option value="">Cargando...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="input-fecha">Fecha de Reserva</label>
+                        <input type="date" id="input-fecha" required>
+                    </div>
+
+                    <button type="submit" class="btn-primary">
+                        <span>Crear Reserva</span> 🚀
+                    </button>
+                </form>
+            </section>
+        </div>
+
+        <!-- Columna Derecha: Tablas -->
+        <div class="columna-principal">
+
+            <section class="card">
+                <div class="card-header flex-between">
+                    <h2>🏢 Estado de las Aulas</h2>
+                    <div class="filtros">
+                        <button id="btn-todas-aulas" class="btn-outline">Todas</button>
+                        <button id="btn-aulas-ordenadores" class="btn-outline">💻 Con PCs</button>
+                        <div class="input-group">
+                            <input type="number" id="input-capacidad" placeholder="Capacidad min." min="1">
+                            <button id="btn-filtrar-capacidad" class="btn-secondary">Filtrar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table id="tabla-aulas">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Capacidad</th>
+                            <th>Ordenadores</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <!-- Dinámico -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="card-header flex-between">
+                    <h2>📋 Registro de Reservas</h2>
+                    <button id="btn-cargar-reservas" class="btn-outline">🔄 Actualizar</button>
+                </div>
+
+                <div class="table-container">
+                    <table id="tabla-reservas">
+                        <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Aula</th>
+                            <th>Profesor</th>
+                            <th>Franja</th>
+                            <th>Acción</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <!-- Dinámico -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </div>
+    </div>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
